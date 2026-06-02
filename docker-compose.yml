@@ -1,0 +1,112 @@
+
+services:
+
+  # PELICULAS
+  peliculas-app:
+    build: ../peliculas-backend
+    container_name: peliculas-app-container
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://peliculas-db:5432/peliculas_db
+      SPRING_DATASOURCE_USERNAME: user_peliculas
+      SPRING_DATASOURCE_PASSWORD: pass_peliculas
+    depends_on:
+      - peliculas-db
+    networks:
+      - cine-network
+
+  peliculas-db:
+    image: postgres:16
+    container_name: peliculas-db-container
+    environment:
+      POSTGRES_DB: peliculas_db
+      POSTGRES_USER: user_peliculas
+      POSTGRES_PASSWORD: pass_peliculas
+    ports:
+      - "5432:5432"
+    volumes:
+      - peliculas-data:/var/lib/postgresql/data
+    networks:
+      - cine-network
+
+
+  # CARRITO
+  carrito-app:
+    build: ../carrito-backend
+    container_name: carrito-app-container
+    ports:
+      - "8082:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://carrito-db:5432/carrito_db
+      SPRING_DATASOURCE_USERNAME: user_carrito
+      SPRING_DATASOURCE_PASSWORD: pass_carrito
+      PELICULAS_BASE_URL: http://peliculas-app:8080 
+    depends_on:
+      - carrito-db
+      - peliculas-app
+    networks:
+      - cine-network
+
+  carrito-db:
+    image: postgres:16
+    container_name: carrito-db-container
+    environment:
+      POSTGRES_DB: carrito_db
+      POSTGRES_USER: user_carrito
+      POSTGRES_PASSWORD: pass_carrito
+    ports:
+      - "5433:5432"
+    volumes:
+      - carrito-data:/var/lib/postgresql/data
+    networks:
+      - cine-network
+
+
+  # KEYCLOAK
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-container
+    command: >
+           start-dev
+               --import-realm
+               --spi-theme-cache-themes=false
+               --spi-theme-cache-templates=false
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak_db
+      KC_DB_USERNAME: user_keycloak
+      KC_DB_PASSWORD: pass_keycloak
+    ports:
+      - "9090:8080"
+    depends_on:
+      - keycloak-db
+    volumes:
+      - ../keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ../keycloak/themes:/opt/keycloak/themes
+    networks:
+      - cine-network
+
+  keycloak-db:
+    image: postgres:16
+    container_name: keycloak-db-container
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: user_keycloak
+      POSTGRES_PASSWORD: pass_keycloak
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+    networks:
+      - cine-network
+
+
+volumes:
+  peliculas-data:
+  carrito-data:
+  keycloak-data:
+
+networks:
+  cine-network:
