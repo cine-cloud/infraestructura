@@ -1,6 +1,16 @@
 
 services:
 
+  # RABBITMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-container
+    ports:
+    - "5672:5672"
+    - "15672:15672"
+    networks:
+    - cine-network
+
   # PELICULAS
   peliculas-app:
     build: ../peliculas-backend
@@ -11,8 +21,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://peliculas-db:5432/peliculas_db
       SPRING_DATASOURCE_USERNAME: user_peliculas
       SPRING_DATASOURCE_PASSWORD: pass_peliculas
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     depends_on:
       - peliculas-db
+      - rabbitmq
     networks:
       - cine-network
 
@@ -23,6 +36,7 @@ services:
       POSTGRES_DB: peliculas_db
       POSTGRES_USER: user_peliculas
       POSTGRES_PASSWORD: pass_peliculas
+      TZ: America/Argentina/Buenos_Aires      
     ports:
       - "5432:5432"
     volumes:
@@ -42,10 +56,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://carrito-db:5432/carrito_db
       SPRING_DATASOURCE_USERNAME: user_carrito
       SPRING_DATASOURCE_PASSWORD: pass_carrito
-      PELICULAS_BASE_URL: http://peliculas-app:8080 
+      PELICULAS_BASE_URL: http://peliculas-app:8080
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     depends_on:
-      - carrito-db
-      - peliculas-app
+        - carrito-db
+        - peliculas-app
+        - rabbitmq
     networks:
       - cine-network
 
@@ -56,6 +73,7 @@ services:
       POSTGRES_DB: carrito_db
       POSTGRES_USER: user_carrito
       POSTGRES_PASSWORD: pass_carrito
+      TZ: America/Argentina/Buenos_Aires      
     ports:
       - "5433:5432"
     volumes:
@@ -80,6 +98,8 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak_db
       KC_DB_USERNAME: user_keycloak
       KC_DB_PASSWORD: pass_keycloak
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     ports:
       - "9090:8080"
     depends_on:
@@ -97,16 +117,47 @@ services:
       POSTGRES_DB: keycloak_db
       POSTGRES_USER: user_keycloak
       POSTGRES_PASSWORD: pass_keycloak
+      TZ: America/Argentina/Buenos_Aires      
     volumes:
       - keycloak-data:/var/lib/postgresql/data
     networks:
       - cine-network
 
+  # HISTORIAL DE COMPRAS
+  historial-db:
+    image: mongo:8
+    container_name: historial-db-container
+    ports:
+      - "27017:27017"
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+    volumes:
+      - historial-data:/data/db
+    networks:
+      - cine-network
+
+  historial-app:
+    build: ../historial-compras-backend
+    container_name: historial-app-container
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATA_MONGODB_HOST: historial-db
+      SPRING_DATA_MONGODB_PORT: 27017
+      SPRING_DATA_MONGODB_DATABASE: historial_db
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
+    depends_on:
+      - historial-db
+      - rabbitmq
+    networks:
+      - cine-network
 
 volumes:
   peliculas-data:
   carrito-data:
   keycloak-data:
+  historial-data:
 
 networks:
   cine-network:
