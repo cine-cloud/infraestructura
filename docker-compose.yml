@@ -20,7 +20,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://peliculas-db:5432/peliculas_db
       SPRING_DATASOURCE_USERNAME: user_peliculas
-      SPRING_DATASOURCE_PASSWORD: pass_peliculas
+      SPRING_DATASOURCE_PASSWORD: pass_peliculas   
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/cinecloud
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/cinecloud/protocol/openid-connect/certs
+      HISTORIAL_BASE_URL: http://historial-app:8083
       TZ: America/Argentina/Buenos_Aires
       JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     depends_on:
