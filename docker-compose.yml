@@ -1,4 +1,3 @@
-
 services:
 
   # RABBITMQ
@@ -6,10 +5,10 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq-container
     ports:
-    - "5672:5672"
-    - "15672:15672"
+      - "5672:5672"
+      - "15672:15672"
     networks:
-    - cine-network
+      - cine-network
 
   # PELICULAS
   peliculas-app:
@@ -20,7 +19,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://peliculas-db:5432/peliculas_db
       SPRING_DATASOURCE_USERNAME: user_peliculas
-      SPRING_DATASOURCE_PASSWORD: pass_peliculas   
+      SPRING_DATASOURCE_PASSWORD: pass_peliculas
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/cinecloud
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/cinecloud/protocol/openid-connect/certs
       HISTORIAL_BASE_URL: http://historial-app:8083
@@ -39,14 +38,13 @@ services:
       POSTGRES_DB: peliculas_db
       POSTGRES_USER: user_peliculas
       POSTGRES_PASSWORD: pass_peliculas
-      TZ: America/Argentina/Buenos_Aires      
+      TZ: America/Argentina/Buenos_Aires
     ports:
       - "5432:5432"
     volumes:
       - peliculas-data:/var/lib/postgresql/data
     networks:
       - cine-network
-
 
   # CARRITO
   carrito-app:
@@ -65,9 +63,9 @@ services:
       TZ: America/Argentina/Buenos_Aires
       JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     depends_on:
-        - carrito-db
-        - peliculas-app
-        - rabbitmq
+      - carrito-db
+      - peliculas-app
+      - rabbitmq
     networks:
       - cine-network
 
@@ -78,7 +76,7 @@ services:
       POSTGRES_DB: carrito_db
       POSTGRES_USER: user_carrito
       POSTGRES_PASSWORD: pass_carrito
-      TZ: America/Argentina/Buenos_Aires      
+      TZ: America/Argentina/Buenos_Aires
     ports:
       - "5433:5432"
     volumes:
@@ -86,16 +84,15 @@ services:
     networks:
       - cine-network
 
-
   # KEYCLOAK
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak-container
     command: >
-           start-dev
-               --import-realm
-               --spi-theme-cache-themes=false
-               --spi-theme-cache-templates=false
+      start-dev
+          --import-realm
+          --spi-theme-cache-themes=false
+          --spi-theme-cache-templates=false
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -122,7 +119,7 @@ services:
       POSTGRES_DB: keycloak_db
       POSTGRES_USER: user_keycloak
       POSTGRES_PASSWORD: pass_keycloak
-      TZ: America/Argentina/Buenos_Aires      
+      TZ: America/Argentina/Buenos_Aires
     volumes:
       - keycloak-data:/var/lib/postgresql/data
     networks:
@@ -158,11 +155,64 @@ services:
     networks:
       - cine-network
 
+  # RATING
+  rating-db:
+    image: postgres:16
+    container_name: rating-db-container
+    environment:
+      POSTGRES_DB: rating_db
+      POSTGRES_USER: user_rating
+      POSTGRES_PASSWORD: pass_rating
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "5435:5432"
+    volumes:
+      - rating-data:/var/lib/postgresql/data
+    networks:
+      - cine-network
+
+  rating-app:
+    build: ../rating-backend
+    container_name: rating-app-container
+    ports:
+      - "8086:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating_db
+      SPRING_DATASOURCE_USERNAME: user_rating
+      SPRING_DATASOURCE_PASSWORD: pass_rating
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
+    depends_on:
+      - rating-db
+    networks:
+      - cine-network
+
+  # NOTIFICACIONES
+  notificaciones-app:
+    build: ../notificaciones-backend
+    container_name: notificaciones-app-container
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      APP_RABBITMQ_EXCHANGE: compra.exchange
+      APP_RABBITMQ_ROUTING_KEY: compra.event
+      APP_RABBITMQ_QUEUE: compras.notificaciones.queue
+      MAILTRAP_USERNAME: ${MAILTRAP_USERNAME:-277e75063f7bfb}
+      MAILTRAP_PASSWORD: ${MAILTRAP_PASSWORD:-d2e44d7a19b857}
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
+    depends_on:
+      - rabbitmq
+    networks:
+      - cine-network
+
 volumes:
   peliculas-data:
   carrito-data:
   keycloak-data:
   historial-data:
+  rating-data:
 
 networks:
   cine-network:
