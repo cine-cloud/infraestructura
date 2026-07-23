@@ -59,6 +59,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://carrito-db:5432/carrito_db
       SPRING_DATASOURCE_USERNAME: user_carrito
       SPRING_DATASOURCE_PASSWORD: pass_carrito
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/cinecloud
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/cinecloud/protocol/openid-connect/certs
       PELICULAS_BASE_URL: http://peliculas-app:8080
       TZ: America/Argentina/Buenos_Aires
       JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
