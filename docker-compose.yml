@@ -207,12 +207,51 @@ services:
     networks:
       - cine-network
 
+  # DESCUENTOS
+  descuentos-db:
+    image: postgres:16
+    container_name: descuentos-db-container
+    environment:
+      POSTGRES_DB: descuentos_db
+      POSTGRES_USER: user_descuentos
+      POSTGRES_PASSWORD: pass_descuentos
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "5436:5432"
+    volumes:
+      - descuentos-data:/var/lib/postgresql/data
+    networks:
+      - cine-network
+
+  descuentos-app:
+    build: ../descuentos-backend
+    container_name: descuentos-app-container
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://descuentos-db:5432/descuentos_db
+      SPRING_DATASOURCE_USERNAME: user_descuentos
+      SPRING_DATASOURCE_PASSWORD: pass_descuentos
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/cinecloud
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/cinecloud/protocol/openid-connect/certs
+      PELICULAS_BASE_URL: http://peliculas-app:8080
+      TZ: America/Argentina/Buenos_Aires
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
+    depends_on:
+      - descuentos-db
+      - peliculas-app
+      - rabbitmq
+    networks:
+      - cine-network
+
 volumes:
   peliculas-data:
   carrito-data:
   keycloak-data:
   historial-data:
   rating-data:
+  descuentos-data:
 
 networks:
   cine-network:
