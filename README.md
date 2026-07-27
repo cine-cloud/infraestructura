@@ -1,6 +1,6 @@
 # Infraestructura - El Almacén de Películas Online
 
-Este repositorio contiene la configuración de la infraestructura y orquestación de los microservicios (verticales) del sistema "El Almacén de Películas Online", dando cumplimiento al requerimiento **RT-9** sobre la documentación de los servicios, sus puertos HTTP y los eventos que se consumen/publican.
+Este repositorio contiene la configuración de la infraestructura y orquestación de los microservicios (verticales) del sistema "El Almacén de Películas Online", documentación de los servicios, sus puertos HTTP y los eventos que se consumen/publican.
 
 ## Propósito
 
@@ -40,57 +40,7 @@ La comunicación asíncrona entre los microservicios se realiza a través de **R
 
 A continuación se presenta un diagrama de contenedor (Nivel 2 de C4) que ilustra la arquitectura de la infraestructura orquestada:
 
-```mermaid
-C4Container
-    title Diagrama de Contenedores - Infraestructura de El Almacén de Películas Online
-
-    Person(cliente, "Cliente", "Usuario autenticado que compra películas y deja ratings.")
-    Person(admin, "Administrador", "Gestiona el catálogo de películas y descuentos.")
-
-    System_Boundary(cinecloud, "El Almacén de Películas Online") {
-        Container(api_gateway, "API Gateway / Frontend", "Monolito", "Punto de entrada de la aplicación.")
-        
-        Container(peliculas, "Películas", "Spring Boot", "Catálogo y detalle de películas. Puerto 8080.")
-        ContainerDb(peliculas_db, "Películas DB", "PostgreSQL", "Almacena datos del catálogo.")
-        
-        Container(carrito, "Carrito de Compras", "Spring Boot", "Gestión del carrito y checkout. Puerto 8082.")
-        ContainerDb(carrito_db, "Carrito DB", "PostgreSQL", "Almacena los carritos activos.")
-        
-        Container(historial, "Historial de Compras", "Spring Boot", "Registro de compras. Puerto 8083.")
-        ContainerDb(historial_db, "Historial DB", "MongoDB", "Almacena historial (NoSQL).")
-        
-        Container(descuentos, "Descuentos", "Spring Boot", "Gestión de descuentos. Puerto 8084.")
-        ContainerDb(descuentos_db, "Descuentos DB", "PostgreSQL", "Almacena los descuentos.")
-        
-        Container(notificaciones, "Notificaciones", "Spring Boot", "Envío de emails. Puerto 8085.")
-        
-        Container(rating, "Rating", "Spring Boot", "Votos y comentarios de películas. Puerto 8086.")
-        ContainerDb(rating_db, "Rating DB", "PostgreSQL", "Almacena los ratings.")
-        
-        Container(keycloak, "Keycloak", "IAM", "Gestión de identidad y seguridad. Puerto 9090.")
-        
-        ContainerQueue(rabbitmq, "RabbitMQ", "Message Broker", "Comunicación asíncrona entre microservicios.")
-    }
-
-    Rel(cliente, api_gateway, "Navega y realiza compras")
-    Rel(admin, api_gateway, "Administra catálogo")
-    
-    Rel(api_gateway, keycloak, "Autenticación (OAuth2/OIDC)")
-    Rel(api_gateway, peliculas, "Consulta catálogo HTTP")
-    Rel(api_gateway, carrito, "Gestiona carrito HTTP")
-    Rel(api_gateway, historial, "Consulta compras HTTP")
-    Rel(api_gateway, rating, "Deja rating HTTP")
-    
-    Rel(peliculas, peliculas_db, "Lee/Escribe")
-    Rel(carrito, carrito_db, "Lee/Escribe")
-    Rel(historial, historial_db, "Lee/Escribe")
-    Rel(descuentos, descuentos_db, "Lee/Escribe")
-    Rel(rating, rating_db, "Lee/Escribe")
-    
-    Rel(carrito, rabbitmq, "Publica evento de compra", "AMQP")
-    Rel(rabbitmq, notificaciones, "Consume evento de compra", "AMQP")
-    Rel(rabbitmq, historial, "Consume evento de compra", "AMQP")
-```
+![img.png](img.png)
 
 ## Instrucciones de Uso
 
