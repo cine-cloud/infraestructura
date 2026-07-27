@@ -21,6 +21,7 @@ La infraestructura orquesta los siguientes microservicios y expone los siguiente
 | **Keycloak (Auth)** | `keycloak` | `9090` | PostgreSQL |
 | **RabbitMQ** | `rabbitmq` | `15672` (Admin) | N/A |
 
+**Nota:** Se configuró un API Gateway para exponer un solo puerto al frontend, centralizando las peticiones a los distintos microservicios.
 ## Eventos (Publicación y Consumo)
 
 La comunicación asíncrona entre los microservicios se realiza a través de **RabbitMQ**, manejando los siguientes flujos de eventos:
