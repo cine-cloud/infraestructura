@@ -12,6 +12,7 @@ La infraestructura orquesta los siguientes microservicios y expone los siguiente
 
 | Servicio / Vertical | Contenedor | Puerto Expuesto | Base de Datos |
 |---------------------|----------------------|-----------------|---------------------|
+| **API Gateway** | `api-gateway` | `8080` | N/A |
 | **Películas** | `peliculas-app` | `8080` | PostgreSQL (5432) |
 | **Carrito** | `carrito-app` | `8082` | PostgreSQL (5433) |
 | **Historial** | `historial-app` | `8083` | MongoDB (27017) |
