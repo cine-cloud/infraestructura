@@ -10,13 +10,38 @@ services:
     networks:
       - cine-network
 
+  # API GATEWAY CENTRALIZADO
+  api-gateway:
+    build: ../api-gateway
+    container_name: api-gateway-container
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      PELICULAS_SERVICE_URL: http://peliculas-app:8087
+      CARRITO_SERVICE_URL: http://carrito-app:8081
+      HISTORIAL_SERVICE_URL: http://historial-app:8083
+      DESCUENTOS_SERVICE_URL: http://descuentos-app:8084
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-app:8085
+      RATING_SERVICE_URL: http://rating-app:8086
+    depends_on:
+      - peliculas-app
+      - carrito-app
+      - descuentos-app
+      - historial-app
+      - notificaciones-app
+      - rating-app
+    networks:
+      - cine-network
+
   # PELICULAS
   peliculas-app:
     build: ../peliculas-backend
     container_name: peliculas-app-container
     ports:
-      - "8080:8080"
+      - "8087:8087"
     environment:
+      SERVER_PORT: 8087
       SPRING_DATASOURCE_URL: jdbc:postgresql://peliculas-db:5432/peliculas_db
       SPRING_DATASOURCE_USERNAME: user_peliculas
       SPRING_DATASOURCE_PASSWORD: pass_peliculas
@@ -59,7 +84,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: pass_carrito
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/cinecloud
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/cinecloud/protocol/openid-connect/certs
-      PELICULAS_BASE_URL: http://peliculas-app:8080
+      PELICULAS_BASE_URL: http://peliculas-app:8087
       TZ: America/Argentina/Buenos_Aires
       JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Argentina/Buenos_Aires"
     depends_on:
@@ -175,7 +200,7 @@ services:
     build: ../rating-backend
     container_name: rating-app-container
     ports:
-      - "8086:8084"
+      - "8086:8086"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating_db
       SPRING_DATASOURCE_USERNAME: user_rating
